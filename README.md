@@ -34,7 +34,7 @@ Building with ROS1 is optional. Instructions are [found below](https://github.co
 
 Clone the repository:
 ```
-git clone https://github.com/UMich-CURLY/drift.git
+git clone https://github.com/abcarr/eecs568-drift-FordAV.git
 ```
 Create another directory which we will name 'build' and use cmake and make to compile an build project:
 
