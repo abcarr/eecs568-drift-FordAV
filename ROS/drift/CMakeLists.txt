@@ -112,6 +112,16 @@ target_link_libraries(husky
   yaml-cpp
 )
 
+rosbuild_add_executable(ford_av
+  ${PROJECT_SOURCE_DIR}/examples/ford_av.cpp)
+
+target_link_libraries(ford_av
+  ${LIBS}
+  ros_communication_lib
+  drift
+  yaml-cpp
+)
+
 # # temporary test for fetch
 rosbuild_add_executable(fetch
   ${PROJECT_SOURCE_DIR}/examples/fetch.cpp)
