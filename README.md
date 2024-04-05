@@ -64,7 +64,7 @@ We provide several examples in the `ROS/examples` directory.
 1. Add `/ROS/drift` to the `ROS_PACKAGE_PATH` environment variable. Open your ~/.bashrc file in a text editor and add the following line to the end. Replace PATH/TO with the directory path to where you cloned drift:
 
   ```
-  export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:PATH/TO/drift/ROS/drift
+  export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:PATH/TO/drift/ROS/eecs568-drift-FordAV
   ```
 
   Then
@@ -75,12 +75,22 @@ We provide several examples in the `ROS/examples` directory.
 2. Execute `build_ros.sh` script in the repository root directory:
 
   ```
-  cd <PATH>/<TO>/drift
+  cd eecs568-drift-FordAV
   chmod +x build_ros.sh
   ./build_ros.sh
   ```
 
 ## Run examples
+
+**Ford AV dataset example**
+```
+# start node
+rosrun drift ford_av
+
+# in another terminal
+rosbag play data/Sample-Data_filtered.bag
+```
+
 **Clearpath Husky robot:**
 ```
 rosrun drift husky
