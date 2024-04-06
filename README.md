@@ -84,11 +84,16 @@ We provide several examples in the `ROS/examples` directory.
 
 **Ford AV dataset example**
 ```
-# start node
+roscore
+
+# in another terminal
 rosrun drift ford_av
 
 # in another terminal
 rosbag play data/Sample-Data_filtered.bag
+
+# in another terminal (visualize the pose)
+rostopic echo /ford_av/vanila_inekf/pose
 ```
 
 **Clearpath Husky robot:**
