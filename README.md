@@ -64,7 +64,7 @@ We provide several examples in the `ROS/examples` directory.
 1. Add `/ROS/drift` to the `ROS_PACKAGE_PATH` environment variable. Open your ~/.bashrc file in a text editor and add the following line to the end. Replace PATH/TO with the directory path to where you cloned drift:
 
   ```
-  export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:PATH/TO/drift/ROS/eecs568-drift-FordAV
+  export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:PATH/TO/eecs568-drift-FordAV/ROS/drift
   ```
 
   Then
