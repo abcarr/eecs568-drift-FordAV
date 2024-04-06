@@ -27,7 +27,7 @@ using namespace estimator;
 
 int main(int argc, char** argv) {
   /// TUTORIAL: Initialize ROS node
-  ros::init(argc, argv, "neya");
+  ros::init(argc, argv, "ford_av");
 
   std::cout << "The subscriber is on!" << std::endl;
 
@@ -45,10 +45,10 @@ int main(int argc, char** argv) {
   std::cout << "Project directory: " << project_dir << std::endl;
 
   std::string ros_config_file
-      = project_dir + "/ROS/drift/config/neya/ros_comm.yaml";
+      = project_dir + "/ROS/drift/config/ford_av/ros_comm.yaml";
   YAML::Node config = YAML::LoadFile(ros_config_file);
   std::string imu_topic = config["subscribers"]["imu_topic"].as<std::string>();
-  std::string velocity_topic = config["subscribers"]["velocity_topic"].as<std::string>();
+  // std::string velocity_topic = config["subscribers"]["velocity_topic"].as<std::string>();
 
   /// TUTORIAL: Add a subscriber for IMU data and get its queue and mutex
   auto qimu_and_mutex = ros_sub.AddIMUSubscriber(imu_topic);
@@ -58,9 +58,9 @@ int main(int argc, char** argv) {
   /// TUTORIAL: Add a subscriber for velocity data and get its queue and mutex
   // auto qv_and_mutex = ros_sub.AddDifferentialDriveVelocitySubscriber(
   //     wheel_encoder_topic, wheel_radius);
-  auto qv_and_mutex = ros_sub.AddVelocityWithCovarianceSubscriber(velocity_topic);
-  auto qv = qv_and_mutex.first;
-  auto qv_mutex = qv_and_mutex.second;
+  // auto qv_and_mutex = ros_sub.AddVelocityWithCovarianceSubscriber(velocity_topic);
+  // auto qv = qv_and_mutex.first;
+  // auto qv_mutex = qv_and_mutex.second;
 
   /// TUTORIAL: Start the subscriber thread
   ros_sub.StartSubscribingThread();
@@ -69,16 +69,14 @@ int main(int argc, char** argv) {
   inekf::ErrorType error_type = RightInvariant;
 
   /// TUTORIAL: Create a state estimator
-  InekfEstimator inekf_estimator(
-      error_type, project_dir + "/config/neya/inekf_estimator.yaml");
+  InekfEstimator inekf_estimator(error_type, project_dir + "/config/ford_av/inekf_estimator.yaml");
 
   /// TUTORIAL: Add a propagation and correction(s) methods to the state
   /// estimator. Here is an example of IMU propagation and velocity correction
   /// for Husky robot
-  inekf_estimator.add_imu_propagation(
-      qimu, qimu_mutex, project_dir + "/config/neya/imu_propagation.yaml");
-  inekf_estimator.add_velocity_correction(
-      qv, qv_mutex, project_dir + "/config/neya/velocity_correction.yaml");
+  inekf_estimator.add_imu_propagation(qimu, qimu_mutex, project_dir + "/config/ford_av/imu_propagation.yaml");
+  // inekf_estimator.add_velocity_correction(
+  //     qv, qv_mutex, project_dir + "/config/neya/velocity_correction.yaml");
 
 
   /// TUTORIAL: Get the robot state queue and mutex from the state estimator
