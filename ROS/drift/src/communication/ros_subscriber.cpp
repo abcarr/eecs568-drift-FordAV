@@ -213,6 +213,56 @@ ROSSubscriber::AddDifferentialDriveVelocitySubscriber(
 };
 
 
+// Use a function to add a new IMU subscriber
+GPSQueuePair ROSSubscriber::AddGPSSubscriber(const std::string topic_name) {
+  // Create a new queue for data buffers
+  GPSQueuePtr gps_queue_ptr(new GPSQueue);
+
+  // Initialize a new mutex for this subscriber
+  mutex_list_.emplace_back(new std::mutex);
+
+  // Create the subscriber
+  subscriber_list_.push_back(nh_->subscribe<sensor_msgs::NavSatFix>(
+      topic_name, 1000,
+      boost::bind(&ROSSubscriber::GPSCallback, this, _1, mutex_list_.back(),
+                  gps_queue_ptr)));
+
+  // Keep the ownership of the data queue in this class
+  gps_queue_list_.push_back(gps_queue_ptr);
+
+  return {gps_queue_ptr, mutex_list_.back()};
+}
+
+// The true function that handles IMU message
+void ROSSubscriber::GPSCallback(
+    const boost::shared_ptr<const sensor_msgs::NavSatFix>& gps_msg,
+    const std::shared_ptr<std::mutex>& mutex, GPSQueuePtr& gps_queue) {
+  
+    // Create an gps measurement object
+    std::shared_ptr<GPSMeasurement> gps_measurement(new GPSMeasurement);
+
+    // Set headers and time stamps
+    gps_measurement->set_header(
+        gps_msg->header.seq,
+        gps_msg->header.stamp.sec + gps_msg->header.stamp.nsec / 1000000000.0,
+        gps_msg->header.frame_id);
+ 
+    // Set coordinates
+    gps_measurement->set_coordinates(gps_msg->latitude, gps_msg->longitude);
+
+    // Get the coordinates from the GPS measurement object
+    Eigen::Vector2d coordinates = gps_measurement->get_coordinates();
+
+    // Uncomment for precision investigation
+    // std::cout << "Latitude: " << coordinates(0) << ", Longitude: " << coordinates(1) << std::endl;
+    // std::cout << "Latitude2: " << std::hex << gps_msg->latitude << std::endl;
+    // printf("Latitude3: %f %lf %x\n", gps_msg->latitude, gps_msg->latitude, gps_msg->latitude);
+
+    mutex.get()->lock();
+    gps_queue->push(gps_measurement);
+    mutex.get()->unlock();
+}
+
 VelocityQueuePair
 ROSSubscriber::AddDifferentialDriveLinearVelocitySubscriber_Fetch(
     const std::string topic_name, double wheel_raidus) {

@@ -26,22 +26,22 @@ class GPSMeasurement : public Measurement {
 
     coordinates_ = Eigen::Vector2d::Zero();
 
-    set_coordinates(coordinates);    // [latitude, longitude]
+    set_coordinates(latitude, longitude);    // [latitude, longitude]
     set_header(seq_in, time_stamp_in, frame_id_in);
   }
 
-  void set_coordinates(const Eigen::Vector3d& position_in) {
+  void set_coordinates(const uint64_t& latitude, const uint64_t& longitude) {
     coordinates_(0) = latitude;
     coordinates_(1) = longitude;
   }  
 
-  inline const Eigen::Matrix4d& get_coordinates() const {
+  inline const Eigen::Vector2d& get_coordinates() const {
     return coordinates_;
   }
 
 
  private:
-  Eigen::Vector3d coordinates_;
+  Eigen::Vector2d coordinates_;
 };
 
 }    // namespace measurement
