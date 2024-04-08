@@ -12,6 +12,7 @@
  **/
 
 #include "communication/ros_subscriber.h"
+// #include "include/drift/utils/WGS84toCartesian.hpp"
 
 namespace ros_wrapper {
 
@@ -247,16 +248,24 @@ void ROSSubscriber::GPSCallback(
         gps_msg->header.stamp.sec + gps_msg->header.stamp.nsec / 1000000000.0,
         gps_msg->header.frame_id);
  
+    // if (!initial_offset_set) {
+    //     // Set the initial offset values
+    //     gpsReference = {gps_msg->latitude,gps_msg->longitude};
+    //     initial_offset_set = true;
+    // } 
+    
+    std::array<double, 2> coordinates = wgs84::toCartesian(gpsReference, {gps_msg->latitude, gps_msg->longitude});
+
     // Set coordinates
-    gps_measurement->set_coordinates(gps_msg->latitude, gps_msg->longitude);
+    gps_measurement->set_coordinates(coordinates[0], coordinates[1]);
 
     // Get the coordinates from the GPS measurement object
-    Eigen::Vector2d coordinates = gps_measurement->get_coordinates();
+    Eigen::Vector2d gettercoordinates = gps_measurement->get_coordinates();
 
-    // Uncomment for precision investigation
-    // std::cout << "Latitude: " << coordinates(0) << ", Longitude: " << coordinates(1) << std::endl;
-    // std::cout << "Latitude2: " << std::hex << gps_msg->latitude << std::endl;
-    // printf("Latitude3: %f %lf %x\n", gps_msg->latitude, gps_msg->latitude, gps_msg->latitude);
+    // Uncomment to see gps coordinates and object pose
+    printf("GPS Pos X: %f, GPS Pos Y: %f\n", gettercoordinates(0), gettercoordinates(1));
+    printf("GPS Ref Lat: %f, GPS Ref Lon: %f\n", gpsReference[0], gpsReference[1]);
+    printf("GPS Pos Lat: %f, GPS Pos Lon: %f\n", gps_msg->latitude, gps_msg->longitude);
 
     mutex.get()->lock();
     gps_queue->push(gps_measurement);

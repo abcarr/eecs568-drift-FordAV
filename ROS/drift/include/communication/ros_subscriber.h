@@ -43,6 +43,7 @@
 #include "drift/estimator/inekf_estimator.h"
 #include "drift/kinematics/mini_cheetah_kinematics.h"
 #include "drift/utils/type_def.h"
+#include "drift/utils/WGS84toCartesian.hpp"
 
 using namespace measurement;
 
@@ -459,6 +460,11 @@ class ROSSubscriber {
 
   int odom_src_id_ = 0;    // Keep track of the odom source id, start from 0 and
                            // increment by 1 for each new odom source
+
+  // Define variables to store the initial offset values
+  std::array<double, 2> gpsReference = {42.294319, -83.223275};
+//   bool initial_offset_set = false;
+
 };
 
 }    // namespace ros_wrapper

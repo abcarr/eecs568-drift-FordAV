@@ -13,26 +13,26 @@
 namespace measurement {
 class GPSMeasurement : public Measurement {
  public:
-  // Construct Encoder measurement
+
   GPSMeasurement() {
     type_ = GPS;
-    coordinates_ = Eigen::Vector2d::Zero(); // latitude, longitude
+    coordinates_ = Eigen::Vector2d::Zero();
   }
 
-  GPSMeasurement(const uint64_t& latitude, const uint64_t& longitude,
+  GPSMeasurement(const double& x_pos, const double& y_pos,
                   const uint64_t seq_in, const double time_stamp_in,
                   const std::string frame_id_in) {
     type_ = GPS;
 
     coordinates_ = Eigen::Vector2d::Zero();
 
-    set_coordinates(latitude, longitude);    // [latitude, longitude]
+    set_coordinates(x_pos, y_pos);    // [x_pos, y_pos]
     set_header(seq_in, time_stamp_in, frame_id_in);
   }
 
-  void set_coordinates(const uint64_t& latitude, const uint64_t& longitude) {
-    coordinates_(0) = latitude;
-    coordinates_(1) = longitude;
+  void set_coordinates(const double& x_pos, const double& y_pos) {
+    coordinates_(0) = x_pos;
+    coordinates_(1) = y_pos;
   }  
 
   inline const Eigen::Vector2d& get_coordinates() const {
