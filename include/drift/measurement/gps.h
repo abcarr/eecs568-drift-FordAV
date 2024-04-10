@@ -31,8 +31,8 @@ class GPSMeasurement : public Measurement {
   }
 
   void set_coordinates(const double& x_pos, const double& y_pos) {
-    coordinates_(0) = x_pos;
-    coordinates_(1) = y_pos;
+    coordinates_(0) = y_pos;
+    coordinates_(1) = x_pos;
   }  
 
   inline const Eigen::Vector2d& get_coordinates() const {
