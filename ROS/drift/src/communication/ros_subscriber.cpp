@@ -247,12 +247,6 @@ void ROSSubscriber::GPSCallback(
         gps_msg->header.seq,
         gps_msg->header.stamp.sec + gps_msg->header.stamp.nsec / 1000000000.0,
         gps_msg->header.frame_id);
- 
-    // if (!initial_offset_set) {
-    //     // Set the initial offset values
-    //     gpsReference = {gps_msg->latitude,gps_msg->longitude};
-    //     initial_offset_set = true;
-    // } 
     
     std::array<double, 2> coordinates = wgs84::toCartesian(gpsReference, {gps_msg->latitude, gps_msg->longitude});
 
