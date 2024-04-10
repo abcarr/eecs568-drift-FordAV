@@ -21,6 +21,7 @@
 #include "drift/measurement/legged_kinematics.h"
 #include "drift/measurement/odom.h"
 #include "drift/measurement/velocity.h"
+#include "drift/measurement/gps.h"
 #include "drift/state/robot_state.h"
 
 using namespace measurement;
@@ -90,6 +91,15 @@ typedef std::queue<OdomMeasurementPtr> OdomQueue; /**< Queue for storing
                                                      odometry measurements. */
 typedef std::shared_ptr<OdomQueue> OdomQueuePtr;  /**< Pointer to the
                                                        OdomQueue. */
+
+// GPS:
+typedef std::shared_ptr<GPSMeasurement> GPSMeasurementPtr; /**< Pointer to the
+                                                                GPSMeasurement
+                                                                object. */
+typedef std::queue<GPSMeasurementPtr> GPSQueue; /**< Queue for storing
+                                                     GPS measurements. */
+typedef std::shared_ptr<GPSQueue> GPSQueuePtr;  /**< Pointer to the
+                                                       GPSQueue. */
 
 
 // #endif    // UTILS_TYPE_DEF_H

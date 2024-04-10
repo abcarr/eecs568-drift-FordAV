@@ -86,14 +86,19 @@ We provide several examples in the `ROS/examples` directory.
 ```
 roscore
 
-# in another terminal
+# in another terminal start ford_av node
 rosrun drift ford_av
 
-# in another terminal
-rosbag play data/Sample-Data_filtered.bag
+# in another terminal start rosbag
+rosbag play data/Sample-Data_filtered.bag --pause
+
+# in another terminal start gps throttling (Use 179.53 Hz is default)
+rosrun topic_tools throttle messages gps <desired frequency>
 
 # in another terminal (visualize the pose)
 rostopic echo /ford_av/vanila_inekf/pose
+
+# return to terminal with rosbag and press spacebar to "play" demo
 ```
 
 **Clearpath Husky robot:**

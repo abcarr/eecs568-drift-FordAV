@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
       = project_dir + "/ROS/drift/config/ford_av/ros_comm.yaml";
   YAML::Node config = YAML::LoadFile(ros_config_file);
   std::string imu_topic = config["subscribers"]["imu_topic"].as<std::string>();
-  // std::string velocity_topic = config["subscribers"]["velocity_topic"].as<std::string>();
+  std::string gps_topic = config["subscribers"]["gps_topic"].as<std::string>();
 
   /// TUTORIAL: Add a subscriber for IMU data and get its queue and mutex
   auto qimu_and_mutex = ros_sub.AddIMUSubscriber(imu_topic);
@@ -61,6 +61,11 @@ int main(int argc, char** argv) {
   // auto qv_and_mutex = ros_sub.AddVelocityWithCovarianceSubscriber(velocity_topic);
   // auto qv = qv_and_mutex.first;
   // auto qv_mutex = qv_and_mutex.second;
+
+  // TODO: Add subscriber for gps data and get its queue and mutex
+  auto qgps_and_mutex = ros_sub.AddGPSSubscriber(gps_topic);
+  auto qgps = qgps_and_mutex.first;
+  auto qgps_mutex = qgps_and_mutex.second;
 
   /// TUTORIAL: Start the subscriber thread
   ros_sub.StartSubscribingThread();

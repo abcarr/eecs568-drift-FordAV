@@ -38,10 +38,12 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/JointState.h"
+#include "sensor_msgs/NavSatFix.h"
 
 #include "drift/estimator/inekf_estimator.h"
 #include "drift/kinematics/mini_cheetah_kinematics.h"
 #include "drift/utils/type_def.h"
+#include "drift/utils/WGS84toCartesian.hpp"
 
 using namespace measurement;
 
@@ -57,6 +59,9 @@ typedef std::pair<AngularVelocityQueuePtr, std::shared_ptr<std::mutex>>
 
 typedef std::pair<OdomQueuePtr, std::shared_ptr<std::mutex>> OdomQueuePair; /**<
 Pair of OdomQueuePtr and OdomQueue mutex. */
+
+typedef std::pair<GPSQueuePtr, std::shared_ptr<std::mutex>> GPSQueuePair; /**<
+Pair of GPSQueuePtr and GPSQueue mutex. */
 
 // Legged kinematics sync
 typedef std::pair<LeggedKinQueuePtr, std::shared_ptr<std::mutex>>
@@ -144,6 +149,28 @@ class ROSSubscriber {
    */
   IMUQueuePair AddFetchIMUSubscriber(const std::string imu_topic_name,
                                      const std::string offset_topic_name);
+
+  /**
+   * @brief Add gps subscriber to the given topic and
+   * return a queue pair.The queue pair contains the queue and the mutex for the
+   * queue. The queue stores the velocity measurements and the mutex is used to
+   * protect the queue.
+   *
+   * @param[in] topic_name gps topic name
+   * @return GPSQueuePair gps queue pair
+   */
+  GPSQueuePair AddGPSSubscriber(const std::string topic_name);
+
+  /**
+   * @brief GPS callback function
+   *
+   * @param[in] gps_msg: GPS message
+   * @param[in] mutex: mutex for the buffer queue
+   * @param[in] gps_queue: pointer to the buffer queue
+   */
+  void GPSCallback(const boost::shared_ptr<const sensor_msgs::NavSatFix>& gps_msg,
+                   const std::shared_ptr<std::mutex>& mutex,
+                   GPSQueuePtr& gps_queue);
 
   /**
    * @brief Add velocity subscriber to the given topic and return a queue
@@ -411,6 +438,8 @@ class ROSSubscriber {
   std::vector<IMUQueuePtr> imu_queue_list_;    // List of IMU queue pointers
   std::vector<VelocityQueuePtr>
       vel_queue_list_;    // List of velocity queue pointers
+  std::vector<GPSQueuePtr>
+      gps_queue_list_;    // List of gps queue pointers
   std::vector<AngularVelocityQueuePtr>
       ang_vel_queue_list_;    // List of angular velocity queue pointers
   std::vector<LeggedKinQueuePtr>
@@ -431,6 +460,10 @@ class ROSSubscriber {
 
   int odom_src_id_ = 0;    // Keep track of the odom source id, start from 0 and
                            // increment by 1 for each new odom source
+
+  // Define variables to store the initial offset values
+  std::array<double, 2> gpsReference = {42.294319, -83.223275}; // taken from https://github.com/Ford/AVData.README.md
+
 };
 
 }    // namespace ros_wrapper
