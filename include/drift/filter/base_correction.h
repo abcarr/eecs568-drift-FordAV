@@ -30,7 +30,7 @@
 #include "drift/state/robot_state.h"
 #include "drift/utils/type_def.h"
 
-enum class CorrectionType { BASE, LEGGED_KINEMATICS, VELOCITY };
+enum class CorrectionType { BASE, LEGGED_KINEMATICS, VELOCITY, GPS };
 
 using namespace measurement;
 using namespace state;
