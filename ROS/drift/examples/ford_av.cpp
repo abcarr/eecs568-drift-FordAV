@@ -82,8 +82,8 @@ int main(int argc, char** argv) {
   inekf_estimator.add_imu_propagation(qimu, qimu_mutex, project_dir + "/config/ford_av/imu_propagation.yaml");
   // inekf_estimator.add_velocity_correction(
   //     qv, qv_mutex, project_dir + "/config/neya/velocity_correction.yaml");
-  //inekf_estimator.add_gps_correction(
-  //     qgps, qgps_mutex, project_dir + "/config/ford_av/gps_correction.yaml");
+  inekf_estimator.add_gps_correction(
+       qgps, qgps_mutex, project_dir + "/config/ford_av/gps_correction.yaml");
 
 
   /// TUTORIAL: Get the robot state queue and mutex from the state estimator

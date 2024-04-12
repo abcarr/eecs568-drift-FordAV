@@ -119,24 +119,31 @@ bool GpsCorrection::Correct(RobotState& state)
     //printf("drosos: set time %0.04f\n", measured_gps->get_time());
     state.set_time(measured_gps->get_time());
 
+    Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
     // Fill out H
     H.conservativeResize(3, dimP);
     H.block(0, 0, 3, dimP) = Eigen::MatrixXd::Zero(3, dimP);
     H.block(0, 3, 3, 3) = Eigen::Matrix3d::Identity();
+    std::cout << "H: " << std::endl << H.format(HeavyFmt) << std::endl;
 
     // Fill out N
     N.conservativeResize(3, 3);
     N = state.get_world_rotation()*mCovariance*state.get_world_rotation().transpose();
+    std::cout << "N: " << std::endl << N.format(HeavyFmt) << std::endl;
 
     // Fill out Z
     Eigen::Matrix3d R = state.get_rotation();
+    //Eigen::Matrix3d R = Eigen::Matrix3d::Identity();//state.get_rotation();
     Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0) - 1294.504994,
                                           measured_gps->get_coordinates()(1) + 1777.506472,
                                           0);
+    std::cout << "R: " << std::endl << R.format(HeavyFmt) << std::endl;
+    std::cout << "gps: " << std::endl << gps.format(HeavyFmt) << std::endl;
     int startIndex = Z.rows();
     Z.conservativeResize(startIndex + 3, Eigen::NoChange);
     // Rotate the gps from sensor frame to body frame, then to world frame
     Z.segment(0, 3) = R * mR_gps2body * mGpsScale * gps;//measured_gps->get_coordinates();// - gps;
+    //Z.segment(0, 3) = R * mGpsScale * gps;//measured_gps->get_coordinates();// - gps;
 
     if (Z.rows() > 0) {
         CorrectRightInvariant(Z, H, N, state, mErrorType);
