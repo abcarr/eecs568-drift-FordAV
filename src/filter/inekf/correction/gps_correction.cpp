@@ -30,6 +30,7 @@ GpsCorrection::GpsCorrection(
     correction_type_ = CorrectionType::GPS;
 
     cout << "Loading gps correction config from " << yamlFilepath << endl;
+    printf("drosos: gpsconstructor\n");
     YAML::Node mConfig = YAML::LoadFile(yamlFilepath);
 
     // set noises
@@ -63,6 +64,7 @@ GpsCorrection::GpsCorrection(
 GpsCorrection::~GpsCorrection() { mEstGpsOutfile.close(); }
 
 const GPSQueuePtr GpsCorrection::get_sensor_data_buffer_ptr() const {
+    printf("drosos: getsensordatabufferptr\n");
   return mSensorDataBufferPtr;
 }
 
@@ -74,25 +76,31 @@ bool GpsCorrection::Correct(RobotState& state)
     int dimP = state.dimP();
 
     // Get latest measurement:
+    //printf("drosos: gpscorrect lock\n");
     sensor_data_buffer_mutex_ptr_->lock();
     if (mSensorDataBufferPtr->empty()) {
+        //printf("drosos: empty\n");
         sensor_data_buffer_mutex_ptr_->unlock();
         return false;
     }
 
     GPSMeasurementPtr measured_gps = mSensorDataBufferPtr->front();
+    //measured_gps->get_coordinates()(0) = measured_gps->get_coordinates()(0) - 1294.504994;
+    //measured_gps->get_coordinates()(1) = measured_gps->get_coordinates()(1) + 1777.506472;
     double timeDiff = measured_gps->get_time() - state.get_propagate_time();
     // only use previous gps meas to correct the state
+    //printf("drosos: timeDiff %0.04f\n", timeDiff);
     if (timeDiff >= 0)
     {
         sensor_data_buffer_mutex_ptr_->unlock();
         return false;
     }
 
+    //printf("drosos: pop\n");
     mSensorDataBufferPtr->pop();
     sensor_data_buffer_mutex_ptr_->unlock();
 
-    if (timeDiff < -t_diff_thres_) {
+    /*if (timeDiff < -t_diff_thres_) {
         while (timeDiff < -t_diff_thres_) {
             sensor_data_buffer_mutex_ptr_->lock();
             if (mSensorDataBufferPtr->empty()) {
@@ -103,10 +111,12 @@ bool GpsCorrection::Correct(RobotState& state)
             mSensorDataBufferPtr->pop();
             sensor_data_buffer_mutex_ptr_->unlock();
 
+            printf("drosos: looping waiting for time\n");
             timeDiff = measured_gps->get_time() - state.get_propagate_time();
         }
-    }
+    }*/
 
+    //printf("drosos: set time %0.04f\n", measured_gps->get_time());
     state.set_time(measured_gps->get_time());
 
     // Fill out H
@@ -120,8 +130,8 @@ bool GpsCorrection::Correct(RobotState& state)
 
     // Fill out Z
     Eigen::Matrix3d R = state.get_rotation();
-    Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0),
-                                          measured_gps->get_coordinates()(1),
+    Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0) - 1294.504994,
+                                          measured_gps->get_coordinates()(1) + 1777.506472,
                                           0);
     int startIndex = Z.rows();
     Z.conservativeResize(startIndex + 3, Eigen::NoChange);
@@ -143,11 +153,14 @@ bool GpsCorrection::Correct(RobotState& state)
 bool GpsCorrection::initialize(RobotState& state) {
     // Get measurement from sensor data buffer
     // Do not initialize if the buffer is emptys
+    //printf("drosos: initialize\n");
     while (mSensorDataBufferPtr->empty()) {
+        //printf("drosos: empty\n");
         // std::cout << "Waiting for gps related encoder data..." << std::endl;
         return false;
     }
 
+    printf("drosos: get latest\n");
     sensor_data_buffer_mutex_ptr_.get()->lock();
     // Get the latest measurement
     while (mSensorDataBufferPtr->size() > 1) {
@@ -159,11 +172,16 @@ bool GpsCorrection::initialize(RobotState& state) {
     sensor_data_buffer_mutex_ptr_.get()->unlock();
 
     // Apply the rotation to map the body gps to the world frame
-    Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0),
-                                          measured_gps->get_coordinates()(1),
+    //Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0),
+    //                                      measured_gps->get_coordinates()(1),
+    //                                      0);
+    Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0) - 1294.504994,
+                                          measured_gps->get_coordinates()(1) + 1777.506472,
                                           0);
+
     state.set_position(state.get_rotation() * gps);//measured_gps->get_coordinates());
     state.set_time(measured_gps->get_time());
+    printf("drosos: done init\n");
     return true;
 }
 

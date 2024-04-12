@@ -114,11 +114,11 @@ void ROSPublisher::PosePublish() {
 
   // Pose msg
   pose_msg.pose.pose.position.x
-      = state.get_world_position()(0) - first_pose_[0];
+      = state.get_world_position()(0) + 1294.504994;// - first_pose_[0];
   pose_msg.pose.pose.position.y
-      = state.get_world_position()(1) - first_pose_[1];
+      = state.get_world_position()(1) - 1777.506472;// - first_pose_[1];
   pose_msg.pose.pose.position.z
-      = state.get_world_position()(2) - first_pose_[2];
+      = state.get_world_position()(2);// - first_pose_[2];
 
   Eigen::Quaterniond quat(state.get_world_rotation());
   pose_msg.pose.pose.orientation.w = quat.w();
