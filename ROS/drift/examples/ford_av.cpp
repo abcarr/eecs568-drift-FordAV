@@ -82,14 +82,14 @@ int main(int argc, char** argv) {
   inekf_estimator.add_imu_propagation(qimu, qimu_mutex, project_dir + "/config/ford_av/imu_propagation.yaml");
   // inekf_estimator.add_velocity_correction(
   //     qv, qv_mutex, project_dir + "/config/neya/velocity_correction.yaml");
-  inekf_estimator.add_gps_correction(
-       qgps, qgps_mutex, project_dir + "/config/ford_av/gps_correction.yaml");
+  // inekf_estimator.add_gps_correction(
+  //      qgps, qgps_mutex, project_dir + "/config/ford_av/gps_correction.yaml");
 
 
   /// TUTORIAL: Get the robot state queue and mutex from the state estimator
   RobotStateQueuePtr robot_state_queue_ptr
       = inekf_estimator.get_robot_state_queue_ptr();
-  std::shared_ptr<std::mutex> robot_state_queue_mutex_ptr
+  std::shared_ptr<std::mutex> robot_state_queue_mutegitx_ptr
       = inekf_estimator.get_robot_state_queue_mutex_ptr();
 
   /// TUTORIAL: Create a ROS publisher and start the publishing thread

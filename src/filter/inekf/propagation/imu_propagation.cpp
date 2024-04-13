@@ -64,6 +64,9 @@ ImuPropagation::ImuPropagation(
       quat_imu2body[0], quat_imu2body[1], quat_imu2body[2], quat_imu2body[3]);
   R_imu2body_ = quarternion_imu2body.toRotationMatrix();
 
+  std::cout << "Rotation from body center to IMU is set to: w:"
+            << quat_imu2body[0] << " x:" << quat_imu2body[1] << " y:" <<  quat_imu2body[2] << " z:" << quat_imu2body[3] << std::endl;
+
   // Set the noise parameters
   double gyro_std = config_["noises"]["gyroscope_std"]
                         ? config_["noises"]["gyroscope_std"].as<double>()
@@ -505,7 +508,7 @@ bool ImuPropagation::set_initial_state(RobotState& state) {
     std::cout << "R0: \n" << R0 << std::endl;
   }
   Eigen::Vector3d p0
-      = {0.0, 0.0, 0.0};    // initial position, we set imu frame as world frame
+      = {1294.504994, -1777.506472, -5.60};    // initial position, we set imu frame as world frame
 
   state.set_rotation(R0);
   state.set_position(p0);

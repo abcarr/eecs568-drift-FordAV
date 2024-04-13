@@ -253,13 +253,10 @@ void ROSSubscriber::GPSCallback(
     // Set coordinates
     gps_measurement->set_coordinates(coordinates[0], coordinates[1]);
 
-    // Get the coordinates from the GPS measurement object
-    Eigen::Vector2d gettercoordinates = gps_measurement->get_coordinates();
-
     // Uncomment to see gps coordinates and object pose
-    printf("GPS Pos X: %f, GPS Pos Y: %f\n", gettercoordinates(0), gettercoordinates(1));
-    printf("GPS Ref Lat: %f, GPS Ref Lon: %f\n", gpsReference[0], gpsReference[1]);
-    printf("GPS Pos Lat: %f, GPS Pos Lon: %f\n", gps_msg->latitude, gps_msg->longitude);
+    // printf("GPS Pos X: %f, GPS Pos Y: %f\n", gettercoordinates(0), gettercoordinates(1));
+    // printf("GPS Ref Lat: %f, GPS Ref Lon: %f\n", gpsReference[0], gpsReference[1]);
+    // printf("GPS Pos Lat: %f, GPS Pos Lon: %f\n", gps_msg->latitude, gps_msg->longitude);
 
     mutex.get()->lock();
     gps_queue->push(gps_measurement);
