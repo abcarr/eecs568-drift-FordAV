@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
   /// TUTORIAL: Get the robot state queue and mutex from the state estimator
   RobotStateQueuePtr robot_state_queue_ptr
       = inekf_estimator.get_robot_state_queue_ptr();
-  std::shared_ptr<std::mutex> robot_state_queue_mutegitx_ptr
+  std::shared_ptr<std::mutex> robot_state_queue_mutex_ptr
       = inekf_estimator.get_robot_state_queue_mutex_ptr();
 
   /// TUTORIAL: Create a ROS publisher and start the publishing thread
