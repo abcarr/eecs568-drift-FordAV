@@ -129,6 +129,10 @@ const IMUQueuePtr ImuPropagation::get_sensor_data_buffer_ptr() const {
 bool ImuPropagation::Propagate(RobotState& state) {
   // Bias corrected IMU measurements
 
+  Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
+
+  int counter_threshold = 1000;
+
   // Use the previous measurement to propagate the state in the
   // current time period
   const ImuMeasurementPtr imu_measurement = prev_imu_measurement_;
@@ -144,20 +148,42 @@ bool ImuPropagation::Propagate(RobotState& state) {
   sensor_data_buffer_ptr_->pop();
   sensor_data_buffer_mutex_ptr_.get()->unlock();
 
-  double dt = imu_measurement->get_time() - state.get_propagate_time();
+  double dt = (imu_measurement->get_time() - state.get_propagate_time());
+  
+  if (ImuPropagation::counter == counter_threshold)
+  {
+    std::cout << "imu_measurement get time: " << imu_measurement->get_time() << std::endl;
+    std::cout << "state get_propagate_time: " << state.get_propagate_time() << std::endl;
+  }
+
   state.set_time(imu_measurement->get_time());
   state.set_propagate_time(imu_measurement->get_time());
   // Rotate imu frame to align it with the body frame and remove bias:
-  Eigen::Vector3d w = R_imu2body_ * imu_measurement->get_angular_velocity()
+  Eigen::Vector3d w = R_imu2body_ * imu_measurement->get_angular_velocity();
                       - state.get_gyroscope_bias();    // Angular Velocity
+
+  if (ImuPropagation::counter == counter_threshold)
+  {
+    std::cout << "w:" << std::endl << w.format(HeavyFmt) << std::endl;
+    std::cout << "angular velocity:" << imu_measurement->get_angular_velocity() << std::endl;
+    std::cout << "gyroscope bias:" << state.get_gyroscope_bias() << std::endl;
+  }
 
   // If IMU is not installed in the center of the robot body, we need to make
   // a compensation. We used formula:
   // R_imu2body_ * a_meas = a + w x (w x t_imu2body) + bias + <ignored term>
   Eigen::Vector3d a_compensate = w.cross(w.cross(t_imu2body_));
-  Eigen::Vector3d a = R_imu2body_ * imu_measurement->get_lin_acc()
-                      - state.get_accelerometer_bias()
-                      - a_compensate;    // Linear Acceleration
+  Eigen::Vector3d a = R_imu2body_ * imu_measurement->get_lin_acc() - state.get_accelerometer_bias();
+                      //- a_compensate;    // Linear Acceleration
+
+  if (ImuPropagation::counter == counter_threshold)
+  {
+    std::cout << "R_imu2body_:" << R_imu2body_ << std::endl;
+    std::cout << "a_compensate:" << std::endl << a_compensate.format(HeavyFmt) << std::endl;
+    std::cout << "a:" << std::endl << a.format(HeavyFmt) << std::endl;
+    std::cout << "lin acc:" << imu_measurement->get_lin_acc() << std::endl;
+    std::cout << "acc bias:" << state.get_accelerometer_bias() << std::endl;
+  }
 
   // Get current state estimate and dimensions
   Eigen::MatrixXd X = state.get_X();
@@ -167,10 +193,27 @@ bool ImuPropagation::Propagate(RobotState& state) {
   int dimP = state.dimP();
   int dimTheta = state.dimTheta();
 
+  if (ImuPropagation::counter == counter_threshold)
+  {
+    std::cout << "X:"  << std::endl << X.format(HeavyFmt) << std::endl;
+    std::cout << "Xinv:"  << std::endl << Xinv.format(HeavyFmt) << std::endl;
+    std::cout << "P:" << std::endl  << P.format(HeavyFmt) << std::endl;
+    std::cout << "dimX:" <<  state.dimX() << std::endl;
+    std::cout << "dimP:" <<  state.dimP() << std::endl;
+    std::cout << "dimTheta:" <<  state.dimTheta() << std::endl;
+  }
+
   //  ------------ Propagate Covariance --------------- //
   Eigen::MatrixXd Phi = this->StateTransitionMatrix(w, a, dt, state);
   Eigen::MatrixXd Qd = this->DiscreteNoiseMatrix(Phi, dt, state);
   Eigen::MatrixXd P_pred = Phi * P * Phi.transpose() + Qd;
+
+  if (ImuPropagation::counter == counter_threshold)
+  {
+    std::cout << "Phi:"  << std::endl << Phi.format(HeavyFmt) << std::endl;
+    std::cout << "Qd:"  << std::endl << Qd.format(HeavyFmt) << std::endl;
+    std::cout << "P_pred:"  << std::endl << P_pred.format(HeavyFmt) << std::endl;
+  }
 
   // If we don't want to estimate bias, remove correlation
   if (!enable_imu_bias_update_) {
@@ -187,6 +230,13 @@ bool ImuPropagation::Propagate(RobotState& state) {
   Eigen::Vector3d v = state.get_velocity();
   Eigen::Vector3d p = state.get_position();
 
+  if (ImuPropagation::counter == counter_threshold)
+  {
+    std::cout << "R:"  << std::endl << R.format(HeavyFmt) << std::endl;
+    std::cout << "v:"  << std::endl << v.format(HeavyFmt) << std::endl;
+    std::cout << "p:"  << std::endl << p.format(HeavyFmt) << std::endl;
+  }
+
   Eigen::Vector3d phi = w * dt;
   Eigen::Matrix3d G0 = Gamma_SO3(
       phi,
@@ -195,11 +245,33 @@ bool ImuPropagation::Propagate(RobotState& state) {
   Eigen::Matrix3d G2 = Gamma_SO3(phi, 2);
 
   Eigen::MatrixXd X_pred = X;
+
+  if (ImuPropagation::counter == counter_threshold)
+  {
+    std::cout << "X_pred:"  << std::endl << X_pred.format(HeavyFmt) << std::endl;
+    std::cout << "phi:"  << std::endl << phi.format(HeavyFmt) << std::endl;
+  }
+
   if (state.get_state_type() == StateType::WorldCentric) {
     // Propagate world-centric state estimate
-    X_pred.block<3, 3>(0, 0) = R * G0;
-    X_pred.block<3, 1>(0, 3) = v + (R * G1 * a + g_) * dt;
-    X_pred.block<3, 1>(0, 4) = p + v * dt + (R * G2 * a + 0.5 * g_) * dt * dt;
+    X_pred.block<3, 3>(0, 0) = R * G0; // updated rotation
+    X_pred.block<3, 1>(0, 3) = v + (R * G1 * a + g_) * dt;  // updated velocity
+    X_pred.block<3, 1>(0, 4) = p + v * dt + (R * G2 * a + 0.5 * g_) * dt * dt; // updated position
+
+    // std::count << "G0:" << G0 << std::endl;
+    // std::count << G1 << std::endl;
+    // std::count << G2 << std::endl;
+
+    if (ImuPropagation::counter == counter_threshold)
+    {
+      std::cout << "dt:"  << dt << std::endl;
+      std::cout << "g_:"  << g_ << std::endl;
+      std::cout << "G0:"  << std::endl << G0.format(HeavyFmt) << std::endl;
+      std::cout << "G1:"  << std::endl << G1.format(HeavyFmt) << std::endl;
+      std::cout << "G2:"  << std::endl << G2.format(HeavyFmt) << std::endl;
+      std::cout << "G2:"  << std::endl << G2.format(HeavyFmt) << std::endl;
+    }
+
   } else {
     // Propagate body-centric state estimate
     Eigen::MatrixXd X_pred = X;
@@ -212,6 +284,14 @@ bool ImuPropagation::Propagate(RobotState& state) {
       X_pred.block<3, 1>(0, i) = G0t * X.block<3, 1>(0, i);
     }
   }
+
+  if (ImuPropagation::counter == counter_threshold)
+  {
+    std::cout << "X_pred:"  << std::endl << X_pred.format(HeavyFmt) << std::endl;
+  }
+
+  std::cout << "counter:" << ImuPropagation::counter << std::endl;
+  ImuPropagation::counter++;
 
   //  ------------ Update State --------------- //
   state.set_X(X_pred);
