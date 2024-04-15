@@ -129,10 +129,26 @@ void CorrectLeftInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixXd& H,
     P = (AdjInv * P * AdjInv.transpose()).eval();
   }
 
-  // Compute Kalman Gain
+  // Compute Kalman Gain - P (15x15) * H.T (15x3) -> PHT (15x3)
   Eigen::MatrixXd PHT = P * H.transpose();
+  // S (3x3) = H (3x15) * PHT (15x3) + N (3x3) 
   Eigen::MatrixXd S = H * PHT + N;
-  Eigen::MatrixXd K = PHT * S.inverse();
+
+  Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
+
+  std::cout << "S size: [" << S.rows() << "," << S.cols() << "]" << std::endl;
+  std::cout << "S: " << std::endl << S.format(HeavyFmt) << std::endl;
+
+  // K(3x3) = PHT (15x3) * S.inv (3x3)
+  Eigen::MatrixXd K = PHT * S.inverse(); // -> L in the paper
+
+  std::cout << "K size: [" << K.rows() << "," << K.cols() << "]" << std::endl;
+  std::cout << "K: " << std::endl << K.format(HeavyFmt) << std::endl;
+  std::cout << "P size: [" << P.rows() << "," << P.cols() << "]" << std::endl;
+  std::cout << "P: " << std::endl << P.format(HeavyFmt) << std::endl;
+  std::cout << "PHT size: [" << PHT.rows() << "," << PHT.cols() << "]" << std::endl;
+  std::cout << "PHT: " << std::endl << PHT.format(HeavyFmt) << std::endl;
+
 
   // Compute state correction vector
   Eigen::VectorXd delta = K * Z;

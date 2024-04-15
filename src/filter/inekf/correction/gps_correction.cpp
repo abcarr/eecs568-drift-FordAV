@@ -71,15 +71,14 @@ const GPSQueuePtr GpsCorrection::get_sensor_data_buffer_ptr() const {
 // Correct using measured body gps with the estimated gps
 bool GpsCorrection::Correct(RobotState& state)
 {
-    Eigen::VectorXd Z;
     Eigen::MatrixXd H, N;
     int dimP = state.dimP();
 
     // Get latest measurement:
-    //printf("drosos: gpscorrect lock\n");
+    // printf("drosos: gpscorrect lock\n");
     sensor_data_buffer_mutex_ptr_->lock();
     if (mSensorDataBufferPtr->empty()) {
-        //printf("drosos: empty\n");
+        // printf("drosos: empty\n");
         sensor_data_buffer_mutex_ptr_->unlock();
         return false;
     }
@@ -100,7 +99,7 @@ bool GpsCorrection::Correct(RobotState& state)
     mSensorDataBufferPtr->pop();
     sensor_data_buffer_mutex_ptr_->unlock();
 
-    /*if (timeDiff < -t_diff_thres_) {
+    if (timeDiff < -t_diff_thres_) {
         while (timeDiff < -t_diff_thres_) {
             sensor_data_buffer_mutex_ptr_->lock();
             if (mSensorDataBufferPtr->empty()) {
@@ -114,7 +113,7 @@ bool GpsCorrection::Correct(RobotState& state)
             printf("drosos: looping waiting for time\n");
             timeDiff = measured_gps->get_time() - state.get_propagate_time();
         }
-    }*/
+    }
 
     //printf("drosos: set time %0.04f\n", measured_gps->get_time());
     state.set_time(measured_gps->get_time());
@@ -123,37 +122,41 @@ bool GpsCorrection::Correct(RobotState& state)
     // Fill out H
     H.conservativeResize(3, dimP);
     H.block(0, 0, 3, dimP) = Eigen::MatrixXd::Zero(3, dimP);
-    H.block(0, 3, 3, 3) = Eigen::Matrix3d::Identity();
+    H.block(0, 6, 3, 3) = Eigen::Matrix3d::Identity();
     std::cout << "H: " << std::endl << H.format(HeavyFmt) << std::endl;
 
     // Fill out N
-    N.conservativeResize(3, 3);
-    N = state.get_world_rotation()*mCovariance*state.get_world_rotation().transpose();
+    N = mCovariance;
+    
     std::cout << "N: " << std::endl << N.format(HeavyFmt) << std::endl;
+    std::cout << "N size: [" << N.rows() << "," << N.cols() << "]" << std::endl;
 
-    // Fill out Z
-    Eigen::Matrix3d R = state.get_rotation();
-    //Eigen::Matrix3d R = Eigen::Matrix3d::Identity();//state.get_rotation();
-    Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0) - 1294.504994,
-                                          measured_gps->get_coordinates()(1) + 1777.506472,
-                                          0);
-    std::cout << "R: " << std::endl << R.format(HeavyFmt) << std::endl;
-    std::cout << "gps: " << std::endl << gps.format(HeavyFmt) << std::endl;
-    int startIndex = Z.rows();
-    Z.conservativeResize(startIndex + 3, Eigen::NoChange);
-    // Rotate the gps from sensor frame to body frame, then to world frame
-    Z.segment(0, 3) = R * mR_gps2body * mGpsScale * gps;//measured_gps->get_coordinates();// - gps;
-    //Z.segment(0, 3) = R * mGpsScale * gps;//measured_gps->get_coordinates();// - gps;
+    // measurement
+    Eigen::VectorXd Y = Eigen::VectorXd::Zero(5);
+    Y << measured_gps->get_coordinates()(0),
+        measured_gps->get_coordinates()(1),
+        0, 0, 1;
 
+    Eigen::VectorXd b = Eigen::VectorXd::Zero(5);
+    b << 0, 0, 0, 0, 1;
+
+    // create innovation matrix
+    Eigen::VectorXd Z = state.get_Xinv() * Y - b;
+    std::cout << "Z size: [" << Z.rows() << "," << Z.cols() << "]" << std::endl;
+
+
+    std::cout << "Z: " << std::endl << Z.format(HeavyFmt) << std::endl;
+    std::cout << "X pre-correction: " << std::endl << state.get_X().format(HeavyFmt) << std::endl;
+    std::cout << "Error type: " << mErrorType << std::endl;
     if (Z.rows() > 0) {
-        CorrectRightInvariant(Z, H, N, state, mErrorType);
+        CorrectLeftInvariant(Z, H, N, state, mErrorType);
     }
 
-    gps = (R * mR_gps2body).inverse() * gps;//measured_gps->get_coordinates();
+    std::cout << "X post-correction: " << std::endl << state.get_X().format(HeavyFmt) << std::endl;
 
-    mEstGpsOutfile << measured_gps->get_time() << "," << gps(0) << ","
-                 << gps(1) << "," << gps(2) << std::endl
-                 << std::flush;
+    // mEstGpsOutfile << measured_gps->get_time() << "," << gps(0) << ","
+    //              << gps(1) << "," << gps(2) << std::endl
+    //              << std::flush;
     return true;
 }
 
@@ -162,8 +165,8 @@ bool GpsCorrection::initialize(RobotState& state) {
     // Do not initialize if the buffer is emptys
     //printf("drosos: initialize\n");
     while (mSensorDataBufferPtr->empty()) {
-        //printf("drosos: empty\n");
-        // std::cout << "Waiting for gps related encoder data..." << std::endl;
+        // printf("drosos: empty\n");
+        std::cout << "Waiting for gps related encoder data..." << std::endl;
         return false;
     }
 
@@ -171,7 +174,7 @@ bool GpsCorrection::initialize(RobotState& state) {
     sensor_data_buffer_mutex_ptr_.get()->lock();
     // Get the latest measurement
     while (mSensorDataBufferPtr->size() > 1) {
-        // std::cout << "Discarding old sensor data..." << std::endl;
+        std::cout << "Discarding old sensor data..." << std::endl;
         mSensorDataBufferPtr->pop();
     }
     GPSMeasurementPtr measured_gps = mSensorDataBufferPtr->front();
@@ -182,11 +185,11 @@ bool GpsCorrection::initialize(RobotState& state) {
     //Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0),
     //                                      measured_gps->get_coordinates()(1),
     //                                      0);
-    Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0) - 1294.504994,
-                                          measured_gps->get_coordinates()(1) + 1777.506472,
+    Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0),
+                                          measured_gps->get_coordinates()(1),
                                           0);
 
-    state.set_position(state.get_rotation() * gps);//measured_gps->get_coordinates());
+    state.set_position(gps);//measured_gps->get_coordinates());
     state.set_time(measured_gps->get_time());
     printf("drosos: done init\n");
     return true;

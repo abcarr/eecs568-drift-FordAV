@@ -131,7 +131,7 @@ bool ImuPropagation::Propagate(RobotState& state) {
 
   Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
 
-  int counter_threshold = 1000;
+  int counter_threshold = 3;
 
   // Use the previous measurement to propagate the state in the
   // current time period
@@ -150,7 +150,7 @@ bool ImuPropagation::Propagate(RobotState& state) {
 
   double dt = (imu_measurement->get_time() - state.get_propagate_time());
   
-  if (ImuPropagation::counter == counter_threshold)
+  if (ImuPropagation::counter < counter_threshold)
   {
     std::cout << "imu_measurement get time: " << imu_measurement->get_time() << std::endl;
     std::cout << "state get_propagate_time: " << state.get_propagate_time() << std::endl;
@@ -162,7 +162,7 @@ bool ImuPropagation::Propagate(RobotState& state) {
   Eigen::Vector3d w = R_imu2body_ * imu_measurement->get_angular_velocity();
                       - state.get_gyroscope_bias();    // Angular Velocity
 
-  if (ImuPropagation::counter == counter_threshold)
+  if (ImuPropagation::counter < counter_threshold)
   {
     std::cout << "w:" << std::endl << w.format(HeavyFmt) << std::endl;
     std::cout << "angular velocity:" << imu_measurement->get_angular_velocity() << std::endl;
@@ -176,7 +176,7 @@ bool ImuPropagation::Propagate(RobotState& state) {
   Eigen::Vector3d a = R_imu2body_ * imu_measurement->get_lin_acc() - state.get_accelerometer_bias();
                       //- a_compensate;    // Linear Acceleration
 
-  if (ImuPropagation::counter == counter_threshold)
+  if (ImuPropagation::counter < counter_threshold)
   {
     std::cout << "R_imu2body_:" << R_imu2body_ << std::endl;
     std::cout << "a_compensate:" << std::endl << a_compensate.format(HeavyFmt) << std::endl;
@@ -193,7 +193,7 @@ bool ImuPropagation::Propagate(RobotState& state) {
   int dimP = state.dimP();
   int dimTheta = state.dimTheta();
 
-  if (ImuPropagation::counter == counter_threshold)
+  if (ImuPropagation::counter < counter_threshold)
   {
     std::cout << "X:"  << std::endl << X.format(HeavyFmt) << std::endl;
     std::cout << "Xinv:"  << std::endl << Xinv.format(HeavyFmt) << std::endl;
@@ -208,7 +208,7 @@ bool ImuPropagation::Propagate(RobotState& state) {
   Eigen::MatrixXd Qd = this->DiscreteNoiseMatrix(Phi, dt, state);
   Eigen::MatrixXd P_pred = Phi * P * Phi.transpose() + Qd;
 
-  if (ImuPropagation::counter == counter_threshold)
+  if (ImuPropagation::counter < counter_threshold)
   {
     std::cout << "Phi:"  << std::endl << Phi.format(HeavyFmt) << std::endl;
     std::cout << "Qd:"  << std::endl << Qd.format(HeavyFmt) << std::endl;
@@ -230,7 +230,7 @@ bool ImuPropagation::Propagate(RobotState& state) {
   Eigen::Vector3d v = state.get_velocity();
   Eigen::Vector3d p = state.get_position();
 
-  if (ImuPropagation::counter == counter_threshold)
+  if (ImuPropagation::counter < counter_threshold)
   {
     std::cout << "R:"  << std::endl << R.format(HeavyFmt) << std::endl;
     std::cout << "v:"  << std::endl << v.format(HeavyFmt) << std::endl;
@@ -246,7 +246,7 @@ bool ImuPropagation::Propagate(RobotState& state) {
 
   Eigen::MatrixXd X_pred = X;
 
-  if (ImuPropagation::counter == counter_threshold)
+  if (ImuPropagation::counter < counter_threshold)
   {
     std::cout << "X_pred:"  << std::endl << X_pred.format(HeavyFmt) << std::endl;
     std::cout << "phi:"  << std::endl << phi.format(HeavyFmt) << std::endl;
@@ -258,11 +258,7 @@ bool ImuPropagation::Propagate(RobotState& state) {
     X_pred.block<3, 1>(0, 3) = v + (R * G1 * a + g_) * dt;  // updated velocity
     X_pred.block<3, 1>(0, 4) = p + v * dt + (R * G2 * a + 0.5 * g_) * dt * dt; // updated position
 
-    // std::count << "G0:" << G0 << std::endl;
-    // std::count << G1 << std::endl;
-    // std::count << G2 << std::endl;
-
-    if (ImuPropagation::counter == counter_threshold)
+    if (ImuPropagation::counter < counter_threshold)
     {
       std::cout << "dt:"  << dt << std::endl;
       std::cout << "g_:"  << g_ << std::endl;
@@ -285,12 +281,12 @@ bool ImuPropagation::Propagate(RobotState& state) {
     }
   }
 
-  if (ImuPropagation::counter == counter_threshold)
+  if (ImuPropagation::counter < counter_threshold)
   {
     std::cout << "X_pred:"  << std::endl << X_pred.format(HeavyFmt) << std::endl;
+    std::cout << "counter:" << ImuPropagation::counter << std::endl;
   }
 
-  std::cout << "counter:" << ImuPropagation::counter << std::endl;
   ImuPropagation::counter++;
 
   //  ------------ Update State --------------- //
@@ -610,6 +606,8 @@ bool ImuPropagation::set_initial_state(RobotState& state) {
 
   // Set this measurement to be the previous measurement
   prev_imu_measurement_ = imu_measurement;
+
+  printf("acarr: imu prop done init\n");
 
   return true;
 }
