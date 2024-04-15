@@ -12,7 +12,6 @@
  **/
 
 #include "communication/ros_subscriber.h"
-// #include "include/drift/utils/WGS84toCartesian.hpp"
 
 namespace ros_wrapper {
 

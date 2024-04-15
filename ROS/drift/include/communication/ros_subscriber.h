@@ -43,7 +43,6 @@
 #include "drift/estimator/inekf_estimator.h"
 #include "drift/kinematics/mini_cheetah_kinematics.h"
 #include "drift/utils/type_def.h"
-#include "drift/utils/WGS84toCartesian.hpp"
 #include "drift/utils/geodetic_conv.hpp"
 
 using namespace measurement;
