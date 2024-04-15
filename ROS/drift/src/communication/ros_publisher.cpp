@@ -63,11 +63,9 @@ ROSPublisher::ROSPublisher(ros::NodeHandle* nh,
             ? config["publishers"]["enable_slip_publisher"].as<bool>()
             : false;
 
-  first_pose_ = {0, 0, 0};
-
-  std::cout << "pose_topic: " << pose_topic << ", path_topic: " << path_topic
-            << std::endl;
+  std::cout << "pose_topic: " << pose_topic << ", path_topic: " << path_topic << std::endl;
   std::cout << "path publish rate: " << path_publish_rate_ << std::endl;
+  std::cout << "pose publish rate: " << pose_publish_rate_ << std::endl;
 
   pose_pub_ = nh_->advertise<geometry_msgs::PoseWithCovarianceStamped>(
       pose_topic, 1000);
@@ -112,6 +110,8 @@ void ROSPublisher::PosePublish() {
   pose_msg.header.stamp = ros::Time().fromSec(state.get_time());
   pose_msg.header.frame_id = pose_frame_;
 
+  first_pose_ = {0, 0, 0};
+
   // Pose msg
   pose_msg.pose.pose.position.x
       = state.get_world_position()(0) - first_pose_[0];
@@ -119,6 +119,9 @@ void ROSPublisher::PosePublish() {
       = state.get_world_position()(1) - first_pose_[1];
   pose_msg.pose.pose.position.z
       = state.get_world_position()(2) - first_pose_[2];
+
+  std::cout << "first pose: (" << first_pose_[0] << "," << first_pose_[1] << "," << first_pose_[2] << ")" << std::endl;
+  std::cout << "pose to be published: " << state.get_world_position() << std::endl;
 
   Eigen::Quaterniond quat(state.get_world_rotation());
   pose_msg.pose.pose.orientation.w = quat.w();

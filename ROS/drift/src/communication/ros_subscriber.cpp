@@ -12,7 +12,6 @@
  **/
 
 #include "communication/ros_subscriber.h"
-// #include "include/drift/utils/WGS84toCartesian.hpp"
 
 namespace ros_wrapper {
 
@@ -247,19 +246,23 @@ void ROSSubscriber::GPSCallback(
         gps_msg->header.seq,
         gps_msg->header.stamp.sec + gps_msg->header.stamp.nsec / 1000000000.0,
         gps_msg->header.frame_id);
-    
-    std::array<double, 2> coordinates = wgs84::toCartesian(gpsReference, {gps_msg->latitude, gps_msg->longitude});
+
+    geodetic_converter::GeodeticConverter myGeodeticConverter;
+
+    double north;
+    double east;
+    double down;
+
+    myGeodeticConverter.initialiseReference(gpsReference[0], gpsReference[1], gpsReference[2]);
+    myGeodeticConverter.geodetic2Ned(gps_msg->latitude, gps_msg->longitude, gps_msg->altitude, &north, &east, &down);
 
     // Set coordinates
-    gps_measurement->set_coordinates(coordinates[0], coordinates[1]);
-
-    // Get the coordinates from the GPS measurement object
-    Eigen::Vector2d gettercoordinates = gps_measurement->get_coordinates();
+    gps_measurement->set_coordinates(north, east, down);
 
     // Uncomment to see gps coordinates and object pose
-    printf("GPS Pos X: %f, GPS Pos Y: %f\n", gettercoordinates(0), gettercoordinates(1));
-    printf("GPS Ref Lat: %f, GPS Ref Lon: %f\n", gpsReference[0], gpsReference[1]);
-    printf("GPS Pos Lat: %f, GPS Pos Lon: %f\n", gps_msg->latitude, gps_msg->longitude);
+    // printf("GPS Pos X: %f, GPS Pos Y: %f, GPS Pos Z: %f\n", north, east, down);
+    // printf("GPS Ref Lat: %f, GPS Ref Lon: %f\n", gpsReference[0], gpsReference[1]);
+    // printf("GPS Pos Lat: %f, GPS Pos Lon: %f\n", gps_msg->latitude, gps_msg->longitude);
 
     mutex.get()->lock();
     gps_queue->push(gps_measurement);

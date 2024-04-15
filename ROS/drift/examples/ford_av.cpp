@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
   ros_sub.StartSubscribingThread();
 
   /// TUTORIAL: Define some configurations for the state estimator
-  inekf::ErrorType error_type = RightInvariant;
+  inekf::ErrorType error_type = LeftInvariant;
 
   /// TUTORIAL: Create a state estimator
   InekfEstimator inekf_estimator(error_type, project_dir + "/config/ford_av/inekf_estimator.yaml");
@@ -79,9 +79,10 @@ int main(int argc, char** argv) {
   /// TUTORIAL: Add a propagation and correction(s) methods to the state
   /// estimator. Here is an example of IMU propagation and velocity correction
   /// for Husky robot
-  inekf_estimator.add_imu_propagation(qimu, qimu_mutex, project_dir + "/config/ford_av/imu_propagation.yaml");
+  inekf_estimator.add_imu_propagation(qimu, qimu_mutex, project_dir + "config/ford_av/imu_propagation.yaml");
   // inekf_estimator.add_velocity_correction(
   //     qv, qv_mutex, project_dir + "/config/neya/velocity_correction.yaml");
+  inekf_estimator.add_gps_correction(qgps, qgps_mutex, project_dir + "config/ford_av/gps_correction.yaml");
 
 
   /// TUTORIAL: Get the robot state queue and mutex from the state estimator

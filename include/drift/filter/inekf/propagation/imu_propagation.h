@@ -232,6 +232,8 @@ class ImuPropagation : public Propagation {
       bias_init_vec_; /**< The initialized IMU bias value in the order of
                        [gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z]. */
 
+  int counter = 0;
+
 };                    // End of class ImuPropagation
 }    // namespace filter::inekf
 

@@ -19,20 +19,21 @@ class GPSMeasurement : public Measurement {
     coordinates_ = Eigen::Vector2d::Zero();
   }
 
-  GPSMeasurement(const double& x_pos, const double& y_pos,
+  GPSMeasurement(const double& x_pos, const double& y_pos, const double& z_pos,
                   const uint64_t seq_in, const double time_stamp_in,
                   const std::string frame_id_in) {
     type_ = GPS;
 
     coordinates_ = Eigen::Vector2d::Zero();
 
-    set_coordinates(x_pos, y_pos);    // [x_pos, y_pos]
+    set_coordinates(x_pos, y_pos, z_pos);    // [x_pos, y_pos, z_pos]
     set_header(seq_in, time_stamp_in, frame_id_in);
   }
 
-  void set_coordinates(const double& x_pos, const double& y_pos) {
-    coordinates_(0) = y_pos;
-    coordinates_(1) = x_pos;
+  void set_coordinates(const double& x_pos, const double& y_pos, const double& z_pos) {
+    coordinates_(0) = x_pos;
+    coordinates_(1) = y_pos;
+    coordinates_(2) = z_pos;
   }  
 
   inline const Eigen::Vector2d& get_coordinates() const {
