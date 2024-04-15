@@ -135,7 +135,9 @@ bool GpsCorrection::Correct(RobotState& state)
     Eigen::VectorXd Y = Eigen::VectorXd::Zero(5);
     Y << measured_gps->get_coordinates()(0),
         measured_gps->get_coordinates()(1),
-        0, 0, 1;
+        measured_gps->get_coordinates()(2), 
+        0, 
+        1;
 
     Eigen::VectorXd b = Eigen::VectorXd::Zero(5);
     b << 0, 0, 0, 0, 1;
@@ -181,13 +183,9 @@ bool GpsCorrection::initialize(RobotState& state) {
     mSensorDataBufferPtr->pop();
     sensor_data_buffer_mutex_ptr_.get()->unlock();
 
-    // Apply the rotation to map the body gps to the world frame
-    //Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0),
-    //                                      measured_gps->get_coordinates()(1),
-    //                                      0);
     Eigen::Vector3d gps = Eigen::Vector3d(measured_gps->get_coordinates()(0),
                                           measured_gps->get_coordinates()(1),
-                                          0);
+                                          measured_gps->get_coordinates()(2));
 
     state.set_position(gps);//measured_gps->get_coordinates());
     state.set_time(measured_gps->get_time());
