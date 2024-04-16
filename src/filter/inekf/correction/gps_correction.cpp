@@ -30,7 +30,6 @@ GpsCorrection::GpsCorrection(
     correction_type_ = CorrectionType::GPS;
 
     cout << "Loading gps correction config from " << yamlFilepath << endl;
-    printf("drosos: gpsconstructor\n");
     YAML::Node mConfig = YAML::LoadFile(yamlFilepath);
 
     // set noises
@@ -64,7 +63,6 @@ GpsCorrection::GpsCorrection(
 GpsCorrection::~GpsCorrection() { mEstGpsOutfile.close(); }
 
 const GPSQueuePtr GpsCorrection::get_sensor_data_buffer_ptr() const {
-    printf("drosos: getsensordatabufferptr\n");
   return mSensorDataBufferPtr;
 }
 
@@ -75,20 +73,15 @@ bool GpsCorrection::Correct(RobotState& state)
     int dimP = state.dimP();
 
     // Get latest measurement:
-    // printf("drosos: gpscorrect lock\n");
     sensor_data_buffer_mutex_ptr_->lock();
     if (mSensorDataBufferPtr->empty()) {
-        // printf("drosos: empty\n");
         sensor_data_buffer_mutex_ptr_->unlock();
         return false;
     }
 
     GPSMeasurementPtr measured_gps = mSensorDataBufferPtr->front();
-    //measured_gps->get_coordinates()(0) = measured_gps->get_coordinates()(0) - 1294.504994;
-    //measured_gps->get_coordinates()(1) = measured_gps->get_coordinates()(1) + 1777.506472;
     double timeDiff = measured_gps->get_time() - state.get_propagate_time();
     // only use previous gps meas to correct the state
-    //printf("drosos: timeDiff %0.04f\n", timeDiff);
     if (timeDiff >= 0)
     {
         sensor_data_buffer_mutex_ptr_->unlock();
@@ -110,26 +103,19 @@ bool GpsCorrection::Correct(RobotState& state)
             mSensorDataBufferPtr->pop();
             sensor_data_buffer_mutex_ptr_->unlock();
 
-            printf("drosos: looping waiting for time\n");
             timeDiff = measured_gps->get_time() - state.get_propagate_time();
         }
     }
 
-    //printf("drosos: set time %0.04f\n", measured_gps->get_time());
     state.set_time(measured_gps->get_time());
 
-    Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
     // Fill out H
     H.conservativeResize(3, dimP);
     H.block(0, 0, 3, dimP) = Eigen::MatrixXd::Zero(3, dimP);
     H.block(0, 6, 3, 3) = Eigen::Matrix3d::Identity();
-    std::cout << "H: " << std::endl << H.format(HeavyFmt) << std::endl;
 
     // Fill out N
     N = mCovariance;
-    
-    std::cout << "N: " << std::endl << N.format(HeavyFmt) << std::endl;
-    std::cout << "N size: [" << N.rows() << "," << N.cols() << "]" << std::endl;
 
     // measurement
     Eigen::VectorXd Y = Eigen::VectorXd::Zero(5);
@@ -144,17 +130,22 @@ bool GpsCorrection::Correct(RobotState& state)
 
     // create innovation matrix
     Eigen::VectorXd Z = state.get_Xinv() * Y - b;
-    std::cout << "Z size: [" << Z.rows() << "," << Z.cols() << "]" << std::endl;
-
-
-    std::cout << "Z: " << std::endl << Z.format(HeavyFmt) << std::endl;
-    std::cout << "X pre-correction: " << std::endl << state.get_X().format(HeavyFmt) << std::endl;
-    std::cout << "Error type: " << mErrorType << std::endl;
     if (Z.rows() > 0) {
         CorrectLeftInvariant(Z, H, N, state, mErrorType);
     }
 
-    std::cout << "X post-correction: " << std::endl << state.get_X().format(HeavyFmt) << std::endl;
+    if (state.isVerbosePrintoutsEnabled())
+    {
+        Eigen::IOFormat HeavyFmt(Eigen::FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
+        std::cout << "H: " << std::endl << H.format(HeavyFmt) << std::endl;
+        std::cout << "N: " << std::endl << N.format(HeavyFmt) << std::endl;
+        std::cout << "N size: [" << N.rows() << "," << N.cols() << "]" << std::endl;
+        std::cout << "Z size: [" << Z.rows() << "," << Z.cols() << "]" << std::endl;
+        std::cout << "Z: " << std::endl << Z.format(HeavyFmt) << std::endl;
+        std::cout << "X pre-correction: " << std::endl << state.get_X().format(HeavyFmt) << std::endl;
+        std::cout << "Error type: " << mErrorType << std::endl;
+        std::cout << "X post-correction: " << std::endl << state.get_X().format(HeavyFmt) << std::endl;
+    }
 
     // mEstGpsOutfile << measured_gps->get_time() << "," << gps(0) << ","
     //              << gps(1) << "," << gps(2) << std::endl
@@ -165,14 +156,11 @@ bool GpsCorrection::Correct(RobotState& state)
 bool GpsCorrection::initialize(RobotState& state) {
     // Get measurement from sensor data buffer
     // Do not initialize if the buffer is emptys
-    //printf("drosos: initialize\n");
     while (mSensorDataBufferPtr->empty()) {
-        // printf("drosos: empty\n");
         std::cout << "Waiting for gps related encoder data..." << std::endl;
         return false;
     }
 
-    printf("drosos: get latest\n");
     sensor_data_buffer_mutex_ptr_.get()->lock();
     // Get the latest measurement
     while (mSensorDataBufferPtr->size() > 1) {
@@ -187,9 +175,9 @@ bool GpsCorrection::initialize(RobotState& state) {
                                           measured_gps->get_coordinates()(1),
                                           measured_gps->get_coordinates()(2));
 
-    state.set_position(gps);//measured_gps->get_coordinates());
+    state.set_position(gps);
     state.set_time(measured_gps->get_time());
-    printf("drosos: done init\n");
+    printf("done correction init\n");
     return true;
 }
 
