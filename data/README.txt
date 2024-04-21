@@ -1,4 +1,6 @@
-There are (2) rosbag samples contained in this folder. 
+There are (2) rosbag samples contained in this folder. This data is from the Ford AV dataset. 
+
+For the rosbags generated as part of the downsampling study, please download them at the following link: https://drive.google.com/file/d/1bfKoXbWuWJHtk1LLLd8McSnwwiFw3PpV/view?usp=drive_link
 
 The first comes from the Ford AV sample dataset (https://ford-multi-av-seasonal.s3-us-west-2.amazonaws.com/Sample-Data.tar.gz).
 
