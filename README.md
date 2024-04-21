@@ -1,18 +1,24 @@
-# DRIFT: Dead Reckoning In Field Time
-![all_robots](figures/drift_all_robots.gif?raw=true "Title")
+# DRIFT In-EKF GPS Correction Frequency Analysis using Ford AV Dataset
 
-## Description
+Hey everyone, welcome to our project! This is built off of the CURLY DRIFT library, please refer to their wonderful and extremely thorough installation and build instructions below.
+
+In the automotive industry, Inertial Measurement Units (IMU) and Global Positioning System (GPS) sensors are frequently used to obtain vehicle state data. It is common practice to increase sensor accuracy and sensor message frequency to improve algorithm accuracy; however, this usually comes at the expense of a more expensive sensor. This paper aims to investigate the impact of decreasing GPS frequency on an Invariant Kalman filter implementation, in order to comprehend a potential lower bound on GPS sensor update rate with respect to accumulated error. 
+
+All project materials can be found in the following folder: https://drive.google.com/file/d/1bfKoXbWuWJHtk1LLLd8McSnwwiFw3PpV/view?usp=drive_link
+
+## DRIFT Description
+
 Dead Reckoning In Field Time (DRIFT) is an open-source C++ software library designed to provide accurate and high-frequency proprioceptive state estimation for a variety of mobile robot architectures. By default, DRIFT supports legged robots, differential-drive wheeled robots, full-size vehicles with shaft encoders and marine robots with a Doppler Velocity Log (DVL). Leveraging symmetry-preserving filters such as [Invariant Kalman Filtering (InEKF)](https://www.annualreviews.org/doi/10.1146/annurev-control-060117-105010), this modular library empowers roboticists and engineers with a robust and adaptable tool to estimate instantaneous local pose and velocity in diverse environments. The software is structured in a modular fashion, allowing users to define their own sensor types, and propagation and correction methods, offering a high degree of customization.
 
 Detailed documentations and tutorials can be found at [https://umich-curly.github.io/DRIFT_Website/](https://umich-curly.github.io/DRIFT_Website/).
 
-## Framework
-![flow_chart](figures/flow_chart.jpg?raw=true "flow chart")
+## Framework for Ford AV Example (IMU Propagation + GPS Correction)
+![flow_chart](figures/methodology.PNG?raw=true "flow chart")
 
-## Run Time Analysis
-We perform runtime evaluations using a personal laptop with an Intel i5-11400H CPU and an NVIDIA Jetson AGX Xavier (CPU). DRIFT can operate at an extremely high frequency using CPU-only computation, even on the resourced-constrained Jetson AGX Xavier. For the optional contact estimator, the inference speed on an NVIDIA RTX 3090 GPU is approximately 1100 Hz, and the inference speed on a Jetson AGX Xavier (GPU) is around 830 Hz after TensorRT optimization.
+## Downsampling Analysis Results
+We tested our filter implementation on a several GPS frequencies and driving scenarios. The datasets come from the [Ford AV]https://github.com/Ford/AVData dataset. More information on these samples were obtained can be seen in the data [README](https://github.com/abcarr/eecs568-drift-FordAV/blob/develop/data/README.txt)
 
-![run_time](figures/run_time.png?raw=true "run time")
+![run_time](figures/results.PNG "results")
 
 # Dependencies
 We have tested the library in **Ubuntu 20.04** and **22.04**, but it should be easy to compile in other platforms.
@@ -20,12 +26,14 @@ We have tested the library in **Ubuntu 20.04** and **22.04**, but it should be e
 > ### C++17 Compiler
 We use the threading functionalities of C++17.
 
-
 > ### Eigen3
 Required by header files. Download and install instructions can be found at: http://eigen.tuxfamily.org. **Requires at least 3.1.0**.
 
 > ### Yaml-cpp
 Required by header files. Download and install instructions can be found at: https://github.com/jbeder/yaml-cpp.
+
+> ### evo
+Required for trajectory visualization and error calculation. Download and install instructions can be found at: https://github.com/MichaelGrupp/evo
 
 > ### ROS1 (Optional)
 Building with ROS1 is optional. Instructions are [found below](https://github.com/UMich-CURLY/drift/tree/main#4-ros).
@@ -80,80 +88,32 @@ We provide several examples in the `ROS/examples` directory.
   ./build_ros.sh
   ```
 
-## Run examples
+## Ford AV example
 
-**Ford AV dataset example**
 ```
+# 1) start roscore
 roscore
 
-# in another terminal start ford_av node
+# 2) in another terminal start ford_av node
 rosrun drift ford_av
 
-# in another terminal start rosbag
-rosbag play data/Sample-Data_filtered.bag --pause
+# 3) in another terminal start rosbag
+rosbag play data/FordAV_straight_path_data_sample.bag --pause
 
-# in another terminal start gps throttling (Use 179.53 Hz is default)
+# 4) in another terminal start gps throttling (Use 180 Hz as default)
 rosrun topic_tools throttle messages gps <desired frequency>
 
-# in another terminal (visualize the pose)
+# 5) in another terminal (visualize the pose)
 rostopic echo /ford_av/vanila_inekf/pose
 
-# return to terminal with rosbag and press spacebar to "play" demo
-```
+# 6) return to terminal with rosbag and press spacebar to "play" demo
 
-**Clearpath Husky robot:**
-```
-rosrun drift husky
-```
+# If you are interested in recording your own bag file for analysis...
+rosbag record -a -O example_bagname
 
-**Fetch robot with the gyro filter:**
-```
-rosrun drift fetch
-```
+# To visualize trajectories/error metrics, we used the evo library (linked above). Some example commands are below, but please refer to the library documentation for more information. Note that /pose_raw refers to the fused GNSS + IMU solution and /pose_localized refers to the Lidar Odometry solution. For more information please refer to the Ford AV dataset documentation
+evo_traj bag example_bagname.bag /pose_raw /pose_localized /ford_av/vanila_inekf/pose --ref=/pose_ground_truth --plot
 
-**Full-size vehicle:**
-```
-rosrun drift neya
-```
-
-**MIT mini-cheetah robot:**
-```
-rosrun drift mini_cheetah
-```
-
-**Girona500 (Marine robot):**
-```
-rosrun drift girona500
-```
-
-## Run the repo with your own robots:
-Please refer to the tutorial here: https://umich-curly.github.io/DRIFT_Website/tutorials/.
-
-# Contact Estimation
-The contact estimation and the contact data set can be found in https://github.com/UMich-CURLY/deep-contact-estimator.
-
-# Citations
-If you find this work useful, please kindly cite the following papers
-
-* Tzu-Yuan Lin, Tingjun Li, Wenzhe Tong, and Maani Ghaffari. "Proprioceptive Invariant Robot State Estimation." arXiv preprint arXiv:2311.04320 (2023). (Under review for Transaction on Robotics)
-```
-@article{lin2023proprioceptive,
-  title={Proprioceptive Invariant Robot State Estimation},
-  author={Lin, Tzu-Yuan and Li, Tingjun and Tong, Wenzhe and Ghaffari, Maani},
-  journal={arXiv preprint arXiv:2311.04320},
-  year={2023}
-}
-```
-* Tzu-Yuan Lin, Ray Zhang, Justin Yu, and Maani Ghaffari. "Legged Robot State Estimation using Invariant Kalman Filtering and Learned Contact Events." In Conference on robot learning. PMLR, 2021
-```
-@inproceedings{
-   lin2021legged,
-   title={Legged Robot State Estimation using Invariant Kalman Filtering and Learned Contact Events},
-   author={Tzu-Yuan Lin and Ray Zhang and Justin Yu and Maani Ghaffari},
-   booktitle={5th Annual Conference on Robot Learning },
-   year={2021},
-   url={https://openreview.net/forum?id=yt3tDB67lc5}
-}
 ```
 
 # License
