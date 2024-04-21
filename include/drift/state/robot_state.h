@@ -615,6 +615,11 @@ class RobotState {
   friend std::ostream& operator<<(std::ostream& os, const RobotState& s);
   /// @} End of Overloaded operators
 
+  public:
+    bool isVerbosePrintoutsEnabled() const {
+        return enable_verbose_printouts;
+    }
+
  private:
   // Utility function:
   /**
@@ -643,6 +648,7 @@ class RobotState {
   Eigen::Vector3d body_ang_vel_;    // Latest angular velocity
   bool enable_imu_bias_update_ = false;
   int slip_flag_ = 0;               // 0: no slip, 1: slip;
+  bool enable_verbose_printouts = false;
 };
 }    // namespace state
 

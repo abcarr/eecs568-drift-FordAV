@@ -6,7 +6,7 @@ subscribers:
 
 publishers:
   # Define publish rate and topics for publishers
-  pose_publish_rate: 162 # Hz
+  pose_publish_rate: 200 # Hz
   pose_publish_topic: "/ford_av/vanila_inekf/pose"
   pose_frame: "odom"
 

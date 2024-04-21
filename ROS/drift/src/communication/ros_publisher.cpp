@@ -120,8 +120,11 @@ void ROSPublisher::PosePublish() {
   pose_msg.pose.pose.position.z
       = state.get_world_position()(2) - first_pose_[2];
 
-  std::cout << "first pose: (" << first_pose_[0] << "," << first_pose_[1] << "," << first_pose_[2] << ")" << std::endl;
-  std::cout << "pose to be published: " << state.get_world_position() << std::endl;
+  if (state.isVerbosePrintoutsEnabled())
+  {
+    std::cout << "first pose: (" << first_pose_[0] << "," << first_pose_[1] << "," << first_pose_[2] << ")" << std::endl;
+    std::cout << "pose to be published: " << state.get_world_position() << std::endl;
+  }
 
   Eigen::Quaterniond quat(state.get_world_rotation());
   pose_msg.pose.pose.orientation.w = quat.w();
