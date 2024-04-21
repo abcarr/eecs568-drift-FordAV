@@ -1,10 +1,14 @@
-Created a filtered Sample-Data.bag file from the FordAV repo using the following command
+There are (2) rosbag samples contained in this folder. This data is from the Ford AV dataset. 
 
-rosbag filter ../Sample-Data/Sample-Data.bag ../Sample-Data/Sample-Data_filtered.bag "topic != '/image_front_left' and topic != '/lidar_blue_scan' and topic != '/lidar_green_scan' and topic != '/lidar_red_scan' and topic != '/lidar_yellow_scan'"
+For the rosbags generated as part of the downsampling study, please download them at the following link: https://drive.google.com/file/d/1bfKoXbWuWJHtk1LLLd8McSnwwiFw3PpV/view?usp=drive_link
 
+The first comes from the Ford AV sample dataset and is a straight line path (https://ford-multi-av-seasonal.s3-us-west-2.amazonaws.com/Sample-Data.tar.gz).
 
-drososmj@Drosos:~/src/final_project/AVData$ rosbag info ../Sample-Data/Sample-Data_filtered.bag
-path:        ../Sample-Data/Sample-Data_filtered.bag
+Created a filtered FordAV_straight_path_data_sample.bag file from the FordAV repo using the following command. Note that lidar topics were filtered out due to their large size
+
+rosbag filter Sample-Data.bag FordAV_straight_path_data_sample.bag "topic != '/image_front_left' and topic != '/lidar_blue_scan' and topic != '/lidar_green_scan' and topic != '/lidar_red_scan' and topic != '/lidar_yellow_scan'"
+
+path:        FordAV_straight_path_data_sample.bag
 version:     2.0
 duration:    27.3s
 start:       Aug 04 2017 00:48:43.03 (1501822123.03)
@@ -28,13 +32,13 @@ topics:      /gps                 4896 msgs    : sensor_msgs/NavSatFix
              /velocity_raw        4872 msgs    : geometry_msgs/Vector3Stamped
 
 
+The second rosbag comes from the Ford AV dataset, log 4 and is a curved path (https://ford-multi-av-seasonal.s3-us-west-2.amazonaws.com/2017-07-24/V2/Log4/2017-07-24-V2-Log4.bag).
 
+Created a filtered FordAV_curved_path_data_sample.bag file from the FordAV repo using the following command. Note that lidar topics were filtered out due to their large size
 
-rosbag filter 2017-10-26-V2-Log4.bag 2017-10-26-V2-Log4_filtered.bag "topic != '/image_front_left' and topic != '/lidar_blue_scan' and topic != '/lidar_green_scan' and topic != '/lidar_red_scan' and topic != '/lidar_yellow_scan' and t.secs<=1508990476.39"
+rosbag filter 2017-10-26-V2-Log4.bag FordAV_curved_path_data_sample.bag "topic != '/image_front_left' and topic != '/lidar_blue_scan' and topic != '/lidar_green_scan' and topic != '/lidar_red_scan' and topic != '/lidar_yellow_scan' and t.secs<=1508990476.39"
 
-drososmj@Drosos:~/src/final_project/eecs568-drift-FordAV$
-drososmj@Drosos:~/src/final_project/eecs568-drift-FordAV$ rosbag info data/2017-10-26-V2-Log4_filtered_trimmed.bag
-path:        data/2017-10-26-V2-Log4_filtered_trimmed.bag
+path:        FordAV_curved_path_data_sample.bag
 version:     2.0
 duration:    1:00s (60s)
 start:       Oct 26 2017 00:00:16.39 (1508990416.39)
