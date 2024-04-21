@@ -461,8 +461,13 @@ class ROSSubscriber {
   int odom_src_id_ = 0;    // Keep track of the odom source id, start from 0 and
                            // increment by 1 for each new odom source
 
-  // Define variables to store the initial offset values
-  std::array<double, 3> gpsReference = {42.294319, -83.223275, 145.707}; // taken from https://github.com/Ford/AVData.README.md
+  // Define variables to store the initial offset values (x and y values taken from https://github.com/Ford/AVData.README.md, 
+  // z value determined by experimentation since not provided
+  // uncomment these values if using the straight path data sample 
+  std::array<double, 3> gpsReference = {42.294319, -83.223275, 138.707};
+  
+  // uncomment these values if using the curved path data sample 
+  // std::array<double, 3> gpsReference = {42.294319, -83.223275, 145.707};
 
 };
 
