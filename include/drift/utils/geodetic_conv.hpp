@@ -1,3 +1,9 @@
+/* ----------------------------------------------------------------------------
+
+File taken from geodetic_utils library by the Autonomous Systems Lab @ ETH Zürich
+https://github.com/ethz-asl/geodetic_utils
+*/
+
 #ifndef GEODETIC_CONVERTER_H_
 #define GEODETIC_CONVERTER_H_
 
