@@ -2,6 +2,8 @@
 
 Hey everyone, welcome to our project! This is built off of the CURLY DRIFT library, please refer to their wonderful and extremely thorough installation and build instructions below.
 
+## Project Abstract
+
 In the automotive industry, Inertial Measurement Units (IMU) and Global Positioning System (GPS) sensors are frequently used to obtain vehicle state data. It is common practice to increase sensor accuracy and sensor message frequency to improve algorithm accuracy; however, this usually comes at the expense of a more expensive sensor. This paper aims to investigate the impact of decreasing GPS frequency on an Invariant Kalman filter implementation, in order to comprehend a potential lower bound on GPS sensor update rate with respect to accumulated error. 
 
 All project materials can be found in the following folder: https://drive.google.com/file/d/1bfKoXbWuWJHtk1LLLd8McSnwwiFw3PpV/view?usp=drive_link
@@ -90,30 +92,40 @@ We provide several examples in the `ROS/examples` directory.
 
 ## Ford AV example
 
+1) start roscore
 ```
-# 1) start roscore
 roscore
+```
 
-# 2) in another terminal start ford_av node
+2) in another terminal start ford_av node
+```
 rosrun drift ford_av
+```
 
-# 3) in another terminal start rosbag
+3) in another terminal start rosbag
+```
 rosbag play data/FordAV_straight_path_data_sample.bag --pause
+```
 
-# 4) in another terminal start gps throttling (Use 180 Hz as default)
+4) in another terminal start gps throttling (Use 180 Hz as default)
+```
 rosrun topic_tools throttle messages gps <desired frequency>
+```
 
-# 5) in another terminal (visualize the pose)
+5) in another terminal (visualize the pose). Return to terminal with rosbag and press spacebar to "play" demo
+```
 rostopic echo /ford_av/vanila_inekf/pose
+```
 
-# 6) return to terminal with rosbag and press spacebar to "play" demo
-
-# If you are interested in recording your own bag file for analysis...
+If you are interested in recording your own bag file for analysis...
+```
 rosbag record -a -O example_bagname
+```
 
-# To visualize trajectories/error metrics, we used the evo library (linked above). Some example commands are below, but please refer to the library documentation for more information. Note that /pose_raw refers to the fused GNSS + IMU solution and /pose_localized refers to the Lidar Odometry solution. For more information please refer to the Ford AV dataset documentation
+To visualize trajectories/error metrics, we used the evo library (linked above). Some example commands # are below, but please refer to the library documentation for more information. Note that /pose_raw refers to the fused GNSS + IMU solution and /pose_localized refers to the Lidar Odometry solution. For more information please refer to the Ford AV dataset documentation
+
+```
 evo_traj bag example_bagname.bag /pose_raw /pose_localized /ford_av/vanila_inekf/pose --ref=/pose_ground_truth --plot
-
 ```
 
 # License
