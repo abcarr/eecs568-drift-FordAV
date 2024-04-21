@@ -2,7 +2,7 @@ There are (2) rosbag samples contained in this folder. This data is from the For
 
 For the rosbags generated as part of the downsampling study, please download them at the following link: https://drive.google.com/file/d/1bfKoXbWuWJHtk1LLLd8McSnwwiFw3PpV/view?usp=drive_link
 
-The first comes from the Ford AV sample dataset (https://ford-multi-av-seasonal.s3-us-west-2.amazonaws.com/Sample-Data.tar.gz).
+The first comes from the Ford AV sample dataset and is a straight line path (https://ford-multi-av-seasonal.s3-us-west-2.amazonaws.com/Sample-Data.tar.gz).
 
 Created a filtered FordAV_straight_path_data_sample.bag file from the FordAV repo using the following command. Note that lidar topics were filtered out due to their large size
 
@@ -32,7 +32,7 @@ topics:      /gps                 4896 msgs    : sensor_msgs/NavSatFix
              /velocity_raw        4872 msgs    : geometry_msgs/Vector3Stamped
 
 
-The first comes from the Ford AV dataset, log 4 (https://ford-multi-av-seasonal.s3-us-west-2.amazonaws.com/2017-07-24/V2/Log4/2017-07-24-V2-Log4.bag).
+The second rosbag comes from the Ford AV dataset, log 4 and is a curved path (https://ford-multi-av-seasonal.s3-us-west-2.amazonaws.com/2017-07-24/V2/Log4/2017-07-24-V2-Log4.bag).
 
 Created a filtered FordAV_curved_path_data_sample.bag file from the FordAV repo using the following command. Note that lidar topics were filtered out due to their large size
 
